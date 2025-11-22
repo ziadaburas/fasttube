@@ -14,6 +14,7 @@ import threading
 import uuid
 from pathlib import Path
 import subprocess
+import shlex
 
 app = Flask(__name__)
 CORS(app)
