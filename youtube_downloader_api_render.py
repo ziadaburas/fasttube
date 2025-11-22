@@ -67,7 +67,7 @@ def get_cookies_for_age_restricted():
         return cookies_path
     return None
 
-def get_ydl_opts(download_id, format_type='best', quality='best', output_path=None):
+def get_ydl_opts2(download_id, format_type='best', quality='best', output_path=None):
     """
     إعدادات yt-dlp المتقدمة - معدّلة حسب طلبك الخاص
     الأمر المقابل:
@@ -124,7 +124,7 @@ def get_ydl_opts(download_id, format_type='best', quality='best', output_path=No
     
     return ydl_opts
 
-def get_ydl_opts1(download_id, format_type='best', quality='best', output_path=None):
+def get_ydl_opts(download_id, format_type='best', quality='best', output_path=None):
     """
     إعدادات yt-dlp المتقدمة - معدّلة لـ Render.com
     """
@@ -151,6 +151,7 @@ def get_ydl_opts1(download_id, format_type='best', quality='best', output_path=N
         'retries': 10,
         'fragment_retries': 10,
         'skip_unavailable_fragments': True,
+        'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
         
         # تحسين الأداء
         'concurrent_fragment_downloads': 3,  # تقليل للخطة المجانية
@@ -188,32 +189,32 @@ def get_ydl_opts1(download_id, format_type='best', quality='best', output_path=N
     }
     
     # إعدادات حسب نوع التحميل
-    if format_type == 'audio':
-        ydl_opts.update({
-            'format': 'bestaudio[filesize<{}M]/best[filesize<{}M]'.format(MAX_FILE_SIZE_MB, MAX_FILE_SIZE_MB),
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-        })
-    elif format_type == 'video_audio':
-        ydl_opts.update({
-            'format': 'bestvideo[filesize<{}M]+bestaudio[filesize<{}M]/best[filesize<{}M]'.format(
-                MAX_FILE_SIZE_MB//2, MAX_FILE_SIZE_MB//2, MAX_FILE_SIZE_MB
-            ),
-            'merge_output_format': 'mp4',
-        })
-    elif format_type == 'specific_quality':
-        ydl_opts.update({
-            'format': 'bestvideo[height<={}][filesize<{}M]+bestaudio/best[height<={}][filesize<{}M]'.format(
-                quality, MAX_FILE_SIZE_MB//2, quality, MAX_FILE_SIZE_MB
-            ),
-        })
-    else:  # best
-        ydl_opts.update({
-            'format': 'best[filesize<{}M]'.format(MAX_FILE_SIZE_MB),
-        })
+    # if format_type == 'audio':
+    #     ydl_opts.update({
+    #         'format': 'bestaudio[filesize<{}M]/best[filesize<{}M]'.format(MAX_FILE_SIZE_MB, MAX_FILE_SIZE_MB),
+    #         'postprocessors': [{
+    #             'key': 'FFmpegExtractAudio',
+    #             'preferredcodec': 'mp3',
+    #             'preferredquality': '192',
+    #         }],
+    #     })
+    # elif format_type == 'video_audio':
+    #     ydl_opts.update({
+    #         'format': 'bestvideo[filesize<{}M]+bestaudio[filesize<{}M]/best[filesize<{}M]'.format(
+    #             MAX_FILE_SIZE_MB//2, MAX_FILE_SIZE_MB//2, MAX_FILE_SIZE_MB
+    #         ),
+    #         'merge_output_format': 'mp4',
+    #     })
+    # elif format_type == 'specific_quality':
+    #     ydl_opts.update({
+    #         'format': 'bestvideo[height<={}][filesize<{}M]+bestaudio/best[height<={}][filesize<{}M]'.format(
+    #             quality, MAX_FILE_SIZE_MB//2, quality, MAX_FILE_SIZE_MB
+    #         ),
+    #     })
+    # else:  # best
+    #     ydl_opts.update({
+    #         'format': 'best[filesize<{}M]'.format(MAX_FILE_SIZE_MB),
+    #     })
     
     # إضافة كوكيز إذا كانت متوفرة
     cookies = get_cookies_for_age_restricted()
