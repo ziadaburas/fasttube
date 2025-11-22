@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  youtube-downloader:
+    build: .
+    container_name: youtube-downloader-api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./downloads:/app/downloads
+      # إذا كنت تستخدم ملف كوكيز، قم بإلغاء التعليق على السطر التالي
+      # - ./cookies.txt:/app/cookies.txt:ro
+    environment:
+      - FLASK_ENV=production
+      - DOWNLOAD_DIR=/app/downloads
+    restart: unless-stopped
+    networks:
+      - youtube-downloader-network
+
+networks:
+  youtube-downloader-network:
+    driver: bridge
