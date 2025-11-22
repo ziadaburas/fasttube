@@ -179,6 +179,8 @@ def get_ydl_opts(download_id, format_type='best', quality='best', output_path=No
 
         # مسار الكوكيز
         'cookiefile':'cookies.txt',
+        'cookie':'cookies.txt',
+        'cookies':'cookies.txt',
         
         # User agent
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -186,7 +188,7 @@ def get_ydl_opts(download_id, format_type='best', quality='best', output_path=No
         # حد أقصى لحجم الملف (للخطة المجانية)
         'max_filesize': MAX_FILE_SIZE_MB * 1024 * 1024,
         
-        'extract_flat': False,
+        # 'extract_flat': False,
     }
     
     # إعدادات حسب نوع التحميل
