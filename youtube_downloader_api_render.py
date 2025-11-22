@@ -180,6 +180,29 @@ def cleanup_old_downloads():
                     file.unlink()
     except Exception as e:
         print(f"Error cleaning up: {e}")
+        
+@app.route('/api/get-file/<download_id>', methods=['GET'])
+def get_file(download_id):
+    """رابط لتحميل الملف فعلياً من السيرفر للمستخدم"""
+    if download_id not in downloads_status:
+        return jsonify({'error': 'Download ID not found'}), 404
+    
+    status = downloads_status[download_id]
+    if status.get('status') != 'completed':
+        return jsonify({'error': 'File not ready yet'}), 400
+        
+    file_path = status.get('filename')
+    if not file_path or not os.path.exists(file_path):
+        return jsonify({'error': 'File deleted or not found'}), 404
+
+    try:
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=os.path.basename(file_path)
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 def download_video_thread(url, download_id, options):
