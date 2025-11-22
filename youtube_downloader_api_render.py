@@ -303,7 +303,7 @@ def download_video_thread(url, download_id, options):
         cleanup_old_downloads()
         
         # التأكد من مسار الكوكيز
-        cookies_path = "cookies.txt"
+        cookies_path = "$PWD/cookies.txt"
         # تحقق هل ملف الكوكيز موجود فعلاً؟
         has_cookies = os.path.exists(cookies_path)
         
@@ -314,6 +314,7 @@ def download_video_thread(url, download_id, options):
             "yt-dlp",
             "-f", "bestaudio+bestvideo[height<=480]",
             "--continue",
+            "--cookies",cookies_path,
             "-o", output_template,
             "--merge-output-format", "mp4",
             "--embed-thumbnail",
@@ -331,10 +332,10 @@ def download_video_thread(url, download_id, options):
         ]
 
         # إضافة الكوكيز فقط إذا كان الملف موجوداً
-        if has_cookies:
-            command.extend(["--cookies", cookies_path])
-        else:
-            print("WARNING: cookies.txt not found! Download might fail for bot detection.")
+        # if has_cookies:
+        #     command.extend(["--cookies", cookies_path])
+        # else:
+        #     print("WARNING: cookies.txt not found! Download might fail for bot detection.")
 
         # إضافة الرابط في النهاية
         command.append(url)
@@ -343,11 +344,11 @@ def download_video_thread(url, download_id, options):
             'status': 'downloading',
             'progress': 'Processing...',
         })
-        cmd = "echo '"
-        for i in command:
-            cmd = f"{cmd} {i}"
-        cmd = f"{cmd} '"
-        subprocess.run(cmd, check=True)
+        # cmd = "echo '"
+        # for i in command:
+        #     cmd = f"{cmd} {i}"
+        # cmd = f"{cmd} '"
+        # subprocess.run(cmd, check=True)
         subprocess.run(command, check=True)
         
         list_of_files = list(DOWNLOAD_DIR.glob('*'))
