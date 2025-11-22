@@ -343,8 +343,11 @@ def download_video_thread(url, download_id, options):
             'status': 'downloading',
             'progress': 'Processing...',
         })
-        
-        subprocess.run(f"echo {command.join()}", check=True)
+        cmd = "echo '"
+        for i in command:
+            cmd = f"{cmd} {i}"
+        cmd = f"{cmd} '"
+        subprocess.run(cmd, check=True)
         subprocess.run(command, check=True)
         
         list_of_files = list(DOWNLOAD_DIR.glob('*'))
