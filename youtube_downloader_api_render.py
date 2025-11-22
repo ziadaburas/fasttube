@@ -148,7 +148,7 @@ def get_ydl_opts(download_id, format_type='best', quality='best', output_path=No
         
         # معالجة الأخطاء
         'ignoreerrors': False,
-        'retries': 10,
+        'retries': 2,
         'fragment_retries': 10,
         'skip_unavailable_fragments': True,
         'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
@@ -177,7 +177,7 @@ def get_ydl_opts(download_id, format_type='best', quality='best', output_path=No
         'sleep_interval_requests': 1,
 
         # مسار الكوكيز
-        'cookiefile':'cookies.txt',
+        'cookies':'cookies.txt',
         
         # User agent
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
