@@ -161,6 +161,7 @@ def get_ydl_opts(download_id, format_type='best', quality='best', output_path=No
 
 def download_video_thread(url, download_id, options):
     """تنزيل الفيديو في خيط منفصل"""
+    print("+"*100)
     try:
         ydl_opts = get_ydl_opts(
             download_id,
