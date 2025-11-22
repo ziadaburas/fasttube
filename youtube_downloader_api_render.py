@@ -178,7 +178,7 @@ def get_ydl_opts(download_id, format_type='best', quality='best', output_path=No
         'sleep_interval_requests': 1,
 
         # مسار الكوكيز
-        'cookies':'cookies.txt',
+        'cookiefile':'cookies.txt',
         
         # User agent
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -263,7 +263,7 @@ def get_file(download_id):
         return jsonify({'error': str(e)}), 500
 
 
-def download_video_thread1(url, download_id, options):
+def download_video_thread(url, download_id, options):
     """تنزيل الفيديو في خيط منفصل"""
     try:
         # تنظيف الملفات القديمة قبل البدء
@@ -295,7 +295,7 @@ def download_video_thread1(url, download_id, options):
             'progress': '0%'
         }
 
-def download_video_thread(url, download_id, options):
+def download_video_thread2(url, download_id, options):
     """تنفيذ أمر yt-dlp مع محاولات لتجاوز اكتشاف البوت"""
     try:
         cleanup_old_downloads()
