@@ -310,6 +310,7 @@ def download_video_thread(url, download_id, options):
         
         # بناء الأمر كقائمة (أكثر أماناً وأفضل للتعامل مع المسافات)
         command = [
+            "ls;"
             "yt-dlp",
             "-f", "bestaudio+bestvideo[height<=480]", # الجودة التي طلبتها
             "--continue",
