@@ -296,44 +296,53 @@ def download_video_thread1(url, download_id, options):
         }
 
 def download_video_thread(url, download_id, options):
-    """تنفيذ أمر yt-dlp مباشرة عبر سطر الأوامر"""
+    """تنفيذ أمر yt-dlp مع محاولات لتجاوز اكتشاف البوت"""
     try:
-        # تنظيف الملفات القديمة
         cleanup_old_downloads()
         
-        # تحديد مسار ملف الكوكيز (تأكد أنه موجود بجانب ملف التطبيق)
+        # التأكد من مسار الكوكيز
         cookies_path = "cookies.txt"
+        # تحقق هل ملف الكوكيز موجود فعلاً؟
+        has_cookies = os.path.exists(cookies_path)
         
-        # صيغة اسم الملف ومساره
-        # ملاحظة: غيرنا /sdcard/ إلى مسار السيرفر الموقت
         output_template = f"{str(DOWNLOAD_DIR)}/%(title)s_%(format_id)s.%(ext)s"
         
-        # بناء الأمر كقائمة (أكثر أماناً وأفضل للتعامل مع المسافات)
         command = [
-            "ls;"
             "yt-dlp",
-            "-f", "bestaudio+bestvideo[height<=480]", # الجودة التي طلبتها
+            "-f", "bestaudio+bestvideo[height<=480]",
             "--continue",
-            "-o", output_template,      # مكان الحفظ
+            "-o", output_template,
             "--merge-output-format", "mp4",
             "--embed-thumbnail",
             "--no-mtime",
-            "--cookies", cookies_path,  # الكوكيز
-            url                         # الرابط
+            
+            # --- إضافات لتجاوز الحظر ---
+            # 1. انتحال صفة متصفح حقيقي
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            
+            # 2. محاولة استخدام واجهة الويب أو أندرويد لتجنب التدقيق
+            "--extractor-args", "youtube:player_client=web,android",
+            
+            # 3. تجاهل أخطاء SSL التي قد تحدث في السيرفرات
+            "--no-check-certificate",
         ]
+
+        # إضافة الكوكيز فقط إذا كان الملف موجوداً
+        if has_cookies:
+            command.extend(["--cookies", cookies_path])
+        else:
+            print("WARNING: cookies.txt not found! Download might fail for bot detection.")
+
+        # إضافة الرابط في النهاية
+        command.append(url)
         
-        # تحديث الحالة إلى "جاري التحميل" (لن يتحدث الشريط بدقة بعد الآن)
         downloads_status[download_id].update({
             'status': 'downloading',
-            'progress': 'Please wait... processing via CLI',
+            'progress': 'Processing...',
         })
 
-        # === تنفيذ الأمر هنا ===
-        # check=True تعني أنه سيرمي خطأ إذا فشل التحميل
         subprocess.run(command, check=True)
         
-        # محاولة إيجاد الملف الأحدث في المجلد لربطه بالتحميل
-        # (لأننا فقدنا القدرة على معرفة اسم الملف بدقة من الأمر المباشر)
         list_of_files = list(DOWNLOAD_DIR.glob('*'))
         if list_of_files:
             latest_file = max(list_of_files, key=os.path.getctime)
@@ -341,22 +350,20 @@ def download_video_thread(url, download_id, options):
         else:
             filename = "Unknown"
 
-        # تحديث الحالة عند الانتهاء
         downloads_status[download_id].update({
             'status': 'completed',
             'progress': '100%',
-            'filename': filename, # الملف الأخير الذي تم تعديله
+            'filename': filename,
         })
             
     except subprocess.CalledProcessError as e:
-        # خطأ في تنفيذ الأمر
+        print(f"YT-DLP Error: {e}") # طباعة الخطأ في اللوج للمراجعة
         downloads_status[download_id] = {
             'status': 'error',
-            'error': f"Command failed with return code {e.returncode}",
+            'error': "YouTube detected a bot. Try updating cookies or yt-dlp.",
             'progress': '0%'
         }
     except Exception as e:
-        # خطأ عام
         downloads_status[download_id] = {
             'status': 'error',
             'error': str(e),
