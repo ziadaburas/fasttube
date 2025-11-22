@@ -308,7 +308,8 @@ def download_video_thread(url, download_id, options):
         has_cookies = os.path.exists(cookies_path)
         
         output_template = f"{str(DOWNLOAD_DIR)}/%(title)s_%(format_id)s.%(ext)s"
-        
+        print("+"*100)
+        subprocess.run("ls", check=True)
         command = [
             "yt-dlp",
             "-f", "bestaudio+bestvideo[height<=480]",
