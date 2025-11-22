@@ -262,7 +262,7 @@ def get_file(download_id):
         return jsonify({'error': str(e)}), 500
 
 
-def download_video_thread(url, download_id, options):
+def download_video_thread1(url, download_id, options):
     """تنزيل الفيديو في خيط منفصل"""
     try:
         # تنظيف الملفات القديمة قبل البدء
@@ -288,6 +288,73 @@ def download_video_thread(url, download_id, options):
             })
             
     except Exception as e:
+        downloads_status[download_id] = {
+            'status': 'error',
+            'error': str(e),
+            'progress': '0%'
+        }
+
+def download_video_thread(url, download_id, options):
+    """تنفيذ أمر yt-dlp مباشرة عبر سطر الأوامر"""
+    try:
+        # تنظيف الملفات القديمة
+        cleanup_old_downloads()
+        
+        # تحديد مسار ملف الكوكيز (تأكد أنه موجود بجانب ملف التطبيق)
+        cookies_path = "cookies.txt"
+        
+        # صيغة اسم الملف ومساره
+        # ملاحظة: غيرنا /sdcard/ إلى مسار السيرفر الموقت
+        output_template = f"{str(DOWNLOAD_DIR)}/%(title)s_%(format_id)s.%(ext)s"
+        
+        # بناء الأمر كقائمة (أكثر أماناً وأفضل للتعامل مع المسافات)
+        command = [
+            "yt-dlp",
+            "-f", "bestaudio+bestvideo[height<=480]", # الجودة التي طلبتها
+            "--continue",
+            "-o", output_template,      # مكان الحفظ
+            "--merge-output-format", "mp4",
+            "--embed-thumbnail",
+            "--no-mtime",
+            "--cookies", cookies_path,  # الكوكيز
+            url                         # الرابط
+        ]
+        
+        # تحديث الحالة إلى "جاري التحميل" (لن يتحدث الشريط بدقة بعد الآن)
+        downloads_status[download_id].update({
+            'status': 'downloading',
+            'progress': 'Please wait... processing via CLI',
+        })
+
+        # === تنفيذ الأمر هنا ===
+        # check=True تعني أنه سيرمي خطأ إذا فشل التحميل
+        subprocess.run(command, check=True)
+        
+        # محاولة إيجاد الملف الأحدث في المجلد لربطه بالتحميل
+        # (لأننا فقدنا القدرة على معرفة اسم الملف بدقة من الأمر المباشر)
+        list_of_files = list(DOWNLOAD_DIR.glob('*'))
+        if list_of_files:
+            latest_file = max(list_of_files, key=os.path.getctime)
+            filename = str(latest_file)
+        else:
+            filename = "Unknown"
+
+        # تحديث الحالة عند الانتهاء
+        downloads_status[download_id].update({
+            'status': 'completed',
+            'progress': '100%',
+            'filename': filename, # الملف الأخير الذي تم تعديله
+        })
+            
+    except subprocess.CalledProcessError as e:
+        # خطأ في تنفيذ الأمر
+        downloads_status[download_id] = {
+            'status': 'error',
+            'error': f"Command failed with return code {e.returncode}",
+            'progress': '0%'
+        }
+    except Exception as e:
+        # خطأ عام
         downloads_status[download_id] = {
             'status': 'error',
             'error': str(e),
