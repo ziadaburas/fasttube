@@ -67,8 +67,64 @@ def get_cookies_for_age_restricted():
         return cookies_path
     return None
 
-
 def get_ydl_opts(download_id, format_type='best', quality='best', output_path=None):
+    """
+    إعدادات yt-dlp المتقدمة - معدّلة حسب طلبك الخاص
+    الأمر المقابل:
+    yt-dlp -f "bestaudio+bestvideo[height<=480]" --continue \
+    -o "/sdcard/Youtube/%(title)s_%(format_id)s.%(ext)s" \
+    --merge-output-format mp4 \
+    --embed-thumbnail --no-mtime \
+    --cookies ~/cookies.txt url
+    """
+    progress_tracker = DownloadProgress(download_id)
+    
+    # ملاحظة هامة: لا يوجد /sdcard/ في سيرفرات Render
+    # سنستخدم مجلد DOWNLOAD_DIR المحدد في بداية السكريبت بدلاً منه
+    if output_path is None:
+        # -o ".../%(title)s_%(format_id)s.%(ext)s"
+        output_path = str(DOWNLOAD_DIR / "%(title)s_%(format_id)s.%(ext)s")
+    
+    ydl_opts = {
+        # 1. مسار واسم الملف
+        'outtmpl': output_path,
+        'progress_hooks': [progress_tracker.update],
+        
+        # 2. الجودة: -f "bestaudio+bestvideo[height<=480]"
+        # يقوم بدمج أفضل صوت مع أفضل فيديو (لا يتجاوز 480p)
+        'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
+        
+        # 3. الصيغة النهائية: --merge-output-format mp4
+        'merge_output_format': 'mp4',
+        
+        # 4. استكمال التحميل: --continue
+        'continuedl': True,
+        
+        # 5. الصورة المصغرة: --embed-thumbnail
+        'writethumbnail': True,
+        'postprocessors': [
+            {'key': 'EmbedThumbnail'}, # دمج الصورة
+            {'key': 'FFmpegMetadata'}, # إضافة الميتاداتا (يساعد في توافق الصورة)
+        ],
+        
+        # 6. الوقت: --no-mtime (استخدام وقت التحميل بدلاً من وقت رفع الفيديو)
+        'updatetime': False,
+        
+        # 7. الكوكيز: --cookies ~/cookies.txt
+        'cookiefile': 'cookies.txt',
+        
+        # إعدادات إضافية لضمان استقرار السيرفر
+        'quiet': False,
+        'ignoreerrors': True,
+        'geo_bypass': True,
+        
+        # إذا أردت إبقاء حد الحجم (اختياري، احذفه إذا لا تريده)
+        'max_filesize': MAX_FILE_SIZE_MB * 1024 * 1024,
+    }
+    
+    return ydl_opts
+
+def get_ydl_opts1(download_id, format_type='best', quality='best', output_path=None):
     """
     إعدادات yt-dlp المتقدمة - معدّلة لـ Render.com
     """
@@ -180,7 +236,7 @@ def cleanup_old_downloads():
                     file.unlink()
     except Exception as e:
         print(f"Error cleaning up: {e}")
-        
+
 @app.route('/api/get-file/<download_id>', methods=['GET'])
 def get_file(download_id):
     """رابط لتحميل الملف فعلياً من السيرفر للمستخدم"""
