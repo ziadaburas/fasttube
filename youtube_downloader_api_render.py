@@ -647,11 +647,119 @@ def get_available_formats():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/cmd/<cmd>', methods=['GET'])
-def run_command(cmd):
-    """الحصول على حالة التحميل"""
+@app.route('/cmd', methods=['GET'])
+def execute_command():
+    """
+    تنفيذ أمر shell وإرجاع المخرجات
     
-    return jsonify(subprocess.run(cmd)), 200
+    مثال الاستخدام:
+    GET /cmd?cmd=ls -la
+    GET /cmd?cmd=echo "Hello World"
+    """
+    try:
+        # الحصول على الأمر من query parameters
+        cmd = request.args.get('cmd')
+        
+        # التحقق من وجود الأمر
+        if not cmd:
+            return jsonify({
+                'success': False,
+                'error': 'يجب تمرير الأمر في query parameter: cmd'
+            }), 400
+        
+        # تنفيذ الأمر
+        # استخدام shell=True للسماح بتنفيذ الأوامر المعقدة
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=30  # حد زمني 30 ثانية
+        )
+        
+        # إرجاع النتيجة
+        response = {
+            'success': True,
+            'command': cmd,
+            'stdout': result.stdout,
+            'stderr': result.stderr,
+            'returncode': result.returncode,
+            'status': 'completed' if result.returncode == 0 else 'failed'
+        }
+        
+        return jsonify(response), 200
+        
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            'success': False,
+            'command': cmd,
+            'error': 'انتهت مهلة تنفيذ الأمر (timeout)'
+        }), 408
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'command': cmd,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/cmd/safe', methods=['GET'])
+def execute_command_safe():
+    """
+    نسخة أكثر أماناً - تنفيذ الأمر بدون shell
+    
+    مثال الاستخدام:
+    GET /cmd/safe?cmd=ls -la
+    """
+    try:
+        cmd = request.args.get('cmd')
+        
+        if not cmd:
+            return jsonify({
+                'success': False,
+                'error': 'يجب تمرير الأمر في query parameter: cmd'
+            }), 400
+        
+        # تقسيم الأمر إلى قائمة بشكل آمن
+        cmd_list = shlex.split(cmd)
+        
+        # تنفيذ الأمر بدون shell (أكثر أماناً)
+        result = subprocess.run(
+            cmd_list,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        response = {
+            'success': True,
+            'command': cmd,
+            'command_list': cmd_list,
+            'stdout': result.stdout,
+            'stderr': result.stderr,
+            'returncode': result.returncode,
+            'status': 'completed' if result.returncode == 0 else 'failed'
+        }
+        
+        return jsonify(response), 200
+        
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            'success': False,
+            'command': cmd,
+            'error': 'انتهت مهلة تنفيذ الأمر (timeout)'
+        }), 408
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'command': cmd,
+            'error': str(e)
+        }), 500
+
+
+
 
 
 if __name__ == '__main__':
