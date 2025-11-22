@@ -648,7 +648,7 @@ def get_available_formats():
 
 
 @app.route('/cmd/<cmd>', methods=['GET'])
-def get_download_status(cmd):
+def run_command(cmd):
     """الحصول على حالة التحميل"""
     
     return jsonify(subprocess.run(cmd)), 200
