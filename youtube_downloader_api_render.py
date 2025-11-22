@@ -265,7 +265,7 @@ def get_file(download_id):
         return jsonify({'error': str(e)}), 500
 
 
-def download_video_thread(url, download_id, options):
+def download_video_thread1(url, download_id, options):
     """تنزيل الفيديو في خيط منفصل"""
     try:
         # تنظيف الملفات القديمة قبل البدء
@@ -297,7 +297,7 @@ def download_video_thread(url, download_id, options):
             'progress': '0%'
         }
 
-def download_video_thread2(url, download_id, options):
+def download_video_thread(url, download_id, options):
     """تنفيذ أمر yt-dlp مع محاولات لتجاوز اكتشاف البوت"""
     try:
         cleanup_old_downloads()
